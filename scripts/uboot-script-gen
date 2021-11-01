@@ -118,6 +118,12 @@ function load_file()
 
     local relative_path="$(realpath --relative-to=$PWD $filename)"
 
+    if test $INSTALL_DIR
+    then
+        mkdir -p $(dirname $INSTALL_DIR/$relative_path)
+        cp $PWD/$filename $INSTALL_DIR/$relative_path
+    fi
+
     echo "$LOAD_CMD $memaddr $relative_path" >> $UBOOT_SOURCE
     add_size $filename
 }
@@ -209,7 +215,7 @@ function print_help
     echo "	$script -c ../config -d ./build42 -t \"scsi load 1:1\""
 }
 
-while getopts ":c:t:d:ho:" opt; do
+while getopts ":c:t:d:ho:i:" opt; do
     case ${opt} in
     t )
         case $OPTARG in
@@ -235,6 +241,10 @@ while getopts ":c:t:d:ho:" opt; do
         ;;
     o )
         UBOOT_SCRIPT_ARG=$OPTARG
+        ;;
+    i )
+        INSTALL_DIR=$OPTARG/
+        test -d $INSTALL_DIR || mkdir -p $INSTALL_DIR
         ;;
     h )
         print_help
