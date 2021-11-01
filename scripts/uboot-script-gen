@@ -240,7 +240,7 @@ while getopts ":c:t:d:ho:i:" opt; do
         uboot_dir=$OPTARG
         ;;
     o )
-        UBOOT_SCRIPT_ARG=$OPTARG
+        CONFIG_NAME=$OPTARG
         ;;
     i )
         INSTALL_DIR=$OPTARG/
@@ -268,12 +268,8 @@ check_depends
 
 source "$cfg_file"
 
-# CLI ARG overrides what's in the config file
-if [ ! -z "$UBOOT_SCRIPT_ARG" ]
-then
-    UBOOT_SCRIPT="$UBOOT_SCRIPT_ARG".scr
-    UBOOT_SOURCE="$UBOOT_SCRIPT_ARG".source
-fi
+UBOOT_SCRIPT=$INSTALL_DIR/"$CONFIG_NAME".scr
+UBOOT_SOURCE=$INSTALL_DIR/"$CONFIG_NAME".source
 
 if [ -z "$XEN_CMD" ]
 then
