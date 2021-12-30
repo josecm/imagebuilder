@@ -55,6 +55,18 @@ function add_device_tree_passthrough()
     echo "fdt set $path/module$addr reg <0x0 "$addr" 0x0 "$size">" >> $UBOOT_SOURCE
 }
 
+function calc_color_bitmap()
+{
+    color_range=$1
+    color_range=($(seq ${color_range/-/ }))
+    color_bitmap=0
+    for i in ${color_range[@]};
+    do
+        color_bitmap=$((color_bitmap | (1 << $i)))
+    done
+    printf '0x%04x' $color_bitmap
+}
+
 function device_tree_editing()
 {
     local device_tree_addr=$1
@@ -94,6 +106,7 @@ function device_tree_editing()
         echo "fdt set /chosen/domU$i memory <0x0 "${DOMU_MEM[$i]}">" >> $UBOOT_SOURCE
         echo "fdt set /chosen/domU$i cpus <"${DOMU_VCPUS[$i]}">" >> $UBOOT_SOURCE
         echo "fdt set /chosen/domU$i vpl011 <0x1>" >> $UBOOT_SOURCE
+        echo "fdt set /chosen/domU$i colors <0x0 "$(calc_color_bitmap ${DOMU_COLORS[$i]})">" >> $UBOOT_SOURCE
         add_device_tree_kernel "/chosen/domU$i" ${domU_kernel_addr[$i]} ${domU_kernel_size[$i]} "${domU_bootargs[$i]}"
         if test "${domU_ramdisk_addr[$i]}"
         then
@@ -276,9 +289,15 @@ source "$cfg_file"
 UBOOT_SCRIPT=$INSTALL_DIR/xen.scr
 UBOOT_SOURCE=$INSTALL_DIR/xen.source
 
+if ! $USE_COLORING
+then
+    XEN_COLORS=0-$MAX_COLORS
+    DOM0_COLORS=0-$MAX_COLORS
+fi
+
 if [ -z "$XEN_CMD" ]
 then
-    XEN_CMD="console=dtuart dtuart=serial0 dom0_mem=$DOM0_MEM dom0_max_vcpus=$DOM0_CPUS bootscrub=0 vwfi=native sched=null loglvl=$LOG_LEVEL guest_loglvl=$LOG_LEVEL"
+    XEN_CMD="console=dtuart dtuart=serial0 dom0_mem=$DOM0_MEM dom0_max_vcpus=$DOM0_CPUS bootscrub=0 vwfi=native sched=null loglvl=$LOG_LEVEL guest_loglvl=$LOG_LEVEL xen_colors=$XEN_COLORS dom0_colors=$DOM0_COLORS"
 fi
 
 if [ -z "$DOM0_CMD" ]
@@ -339,6 +358,10 @@ do
         echo "Cannot handle non-ramdisk rootfses for dom0less VMs."
         echo "DomUs with rootfses on disk need to be created from dom0 using xl."
         exit 1
+    fi
+    if ! $USE_COLORING
+    then
+        DOMU_COLORS[$i]=0-$MAX_COLORS
     fi
     i=$(( $i + 1 ))
 done
