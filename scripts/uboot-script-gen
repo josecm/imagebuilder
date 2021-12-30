@@ -64,20 +64,24 @@ function device_tree_editing()
     echo "fdt set /chosen \#address-cells <0x2>" >> $UBOOT_SOURCE
     echo "fdt set /chosen \#size-cells <0x2>" >> $UBOOT_SOURCE
     echo "fdt set /chosen xen,xen-bootargs \"$XEN_CMD\"" >> $UBOOT_SOURCE
-    echo "fdt mknod /chosen dom0" >> $UBOOT_SOURCE
-    echo "fdt set /chosen/dom0 compatible \"xen,linux-zimage\" \"xen,multiboot-module\"" >> $UBOOT_SOURCE
-    echo "fdt set /chosen/dom0 reg <0x0 "$dom0_kernel_addr" 0x0 "$dom0_kernel_size">" >> $UBOOT_SOURCE
-    if test "$DOM0_RAMDISK"
-    then
-        echo "fdt set /chosen xen,dom0-bootargs \"$DOM0_CMD\"" >> $UBOOT_SOURCE
-        if test $dom0_ramdisk_addr != "-"
+
+    if $DOM0 
+    then 
+        echo "fdt mknod /chosen dom0" >> $UBOOT_SOURCE
+        echo "fdt set /chosen/dom0 compatible \"xen,linux-zimage\" \"xen,multiboot-module\"" >> $UBOOT_SOURCE
+        echo "fdt set /chosen/dom0 reg <0x0 "$dom0_kernel_addr" 0x0 "$dom0_kernel_size">" >> $UBOOT_SOURCE
+        if test "$DOM0_RAMDISK"
         then
-            echo "fdt mknod /chosen dom0-ramdisk" >> $UBOOT_SOURCE
-            echo "fdt set /chosen/dom0-ramdisk compatible \"xen,linux-initrd\" \"xen,multiboot-module\"" >> $UBOOT_SOURCE
-            echo "fdt set /chosen/dom0-ramdisk reg <0x0 "$dom0_ramdisk_addr" 0x0 "$dom0_ramdisk_size">" >> $UBOOT_SOURCE
+            echo "fdt set /chosen xen,dom0-bootargs \"$DOM0_CMD\"" >> $UBOOT_SOURCE
+            if test $dom0_ramdisk_addr != "-"
+            then
+                echo "fdt mknod /chosen dom0-ramdisk" >> $UBOOT_SOURCE
+                echo "fdt set /chosen/dom0-ramdisk compatible \"xen,linux-initrd\" \"xen,multiboot-module\"" >> $UBOOT_SOURCE
+                echo "fdt set /chosen/dom0-ramdisk reg <0x0 "$dom0_ramdisk_addr" 0x0 "$dom0_ramdisk_size">" >> $UBOOT_SOURCE
+            fi
+        else
+            echo "fdt set /chosen xen,dom0-bootargs \"$DOM0_CMD\"" >> $UBOOT_SOURCE
         fi
-    else
-        echo "fdt set /chosen xen,dom0-bootargs \"$DOM0_CMD\"" >> $UBOOT_SOURCE
     fi
 
     i=0
@@ -360,10 +364,13 @@ check_compressed_file_type $XEN "executable"
 xen_addr=$memaddr
 load_file "$XEN"
 
-check_compressed_file_type $DOM0_KERNEL "executable"
-dom0_kernel_addr=$memaddr
-load_file $DOM0_KERNEL
-dom0_kernel_size=$filesize
+if $DOM0
+then
+    check_compressed_file_type $DOM0_KERNEL "executable"
+    dom0_kernel_addr=$memaddr
+    load_file $DOM0_KERNEL
+    dom0_kernel_size=$filesize
+fi
 
 if test "$DOM0_RAMDISK"
 then
