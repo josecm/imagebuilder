@@ -269,8 +269,8 @@ check_depends
 
 source "$cfg_file"
 
-UBOOT_SCRIPT=$INSTALL_DIR/"$CONFIG_NAME".scr
-UBOOT_SOURCE=$INSTALL_DIR/"$CONFIG_NAME".source
+UBOOT_SCRIPT=$INSTALL_DIR/xen.scr
+UBOOT_SOURCE=$INSTALL_DIR/xen.source
 
 if [ -z "$XEN_CMD" ]
 then
