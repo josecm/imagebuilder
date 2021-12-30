@@ -278,7 +278,7 @@ UBOOT_SOURCE=$INSTALL_DIR/xen.source
 
 if [ -z "$XEN_CMD" ]
 then
-    XEN_CMD="console=dtuart dtuart=serial0 dom0_mem=$DOM0_MEM dom0_max_vcpus=$DOM0_CPUS bootscrub=0 vwfi=native sched=null"
+    XEN_CMD="console=dtuart dtuart=serial0 dom0_mem=$DOM0_MEM dom0_max_vcpus=$DOM0_CPUS bootscrub=0 vwfi=native sched=null loglvl=$LOG_LEVEL guest_loglvl=$LOG_LEVEL"
 fi
 
 if [ -z "$DOM0_CMD" ]
