@@ -298,6 +298,12 @@ then
     DOM0_COLORS=0-$MAX_COLORS
 fi
 
+if ! $DOM0 
+then
+    DOM0_MEM=0
+    DOM0_CPUS=0
+fi
+
 if [ -z "$XEN_CMD" ]
 then
     XEN_CMD="console=dtuart dtuart=serial0 dom0_mem=$DOM0_MEM dom0_max_vcpus=$DOM0_CPUS bootscrub=0 vwfi=native sched=null loglvl=$LOG_LEVEL guest_loglvl=$LOG_LEVEL xen_colors=$XEN_COLORS dom0_colors=$DOM0_COLORS"
