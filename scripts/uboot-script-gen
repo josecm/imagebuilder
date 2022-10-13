@@ -108,8 +108,8 @@ function device_tree_editing()
         echo "fdt set /chosen/domU$i vpl011 <0x1>" >> $UBOOT_SOURCE
         if $USE_COLORING
         then
-            echo "fdt set /chosen/domU$i colors <0x0 "$(calc_color_bitmap ${DOMU_COLORS[$i]})">" >> $UBOOT_SOURCE
-        fi  
+            echo "fdt set /chosen/domU$i colors \"${DOMU_COLORS[$i]}\"" >> $UBOOT_SOURCE
+        fi
         add_device_tree_kernel "/chosen/domU$i" ${domU_kernel_addr[$i]} ${domU_kernel_size[$i]} "${domU_bootargs[$i]}"
         if test "${domU_ramdisk_addr[$i]}"
         then
