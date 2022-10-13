@@ -119,6 +119,48 @@ function device_tree_editing()
         then
             add_device_tree_passthrough "/chosen/domU$i" ${domU_passthrough_dtb_addr[$i]} ${domU_passthrough_dtb_size[$i]}
         fi
+        
+        OLDIFS=$IFS; 
+        
+        IFS=':';
+        read -a shmems <<< ${DOMU_SHMEM[$i]}
+        for shmem_params in ${shmems[@]}; do
+            IFS=',';
+            read -a shmem <<< "$shmem_params"
+            shmem_id=${shmem[0]}
+            shmem_guest_base=${shmem[1]}
+            shmem_size=${SHMEM_SIZE[$shmem_id]}
+            shmem_host_base=${SHMEM_BASE[$shmem_id]}
+            shmem_name=domU$i_sharedmem
+            echo "fdt mknod /chosen/domU$i $shmem_name"  >> $UBOOT_SOURCE
+            echo "fdt set /chosen/domU$i/$shmem_name compatible \"xen,domain-shared-memory-v1\"" >> $UBOOT_SOURCE
+            echo "fdt set /chosen/domU$i/$shmem_name xen,shm-id \"shmem-$shmem_id\"" >> $UBOOT_SOURCE
+            echo "fdt set /chosen/domU$i/$shmem_name xen,shared-mem <0x0 $shmem_host_base 0x0 $shmem_guest_base 0x0 $shmem_size>" >> $UBOOT_SOURCE
+        done
+
+        if ! [ -z "$DOMU_EVTCHN" ]; then
+            echo "fdt set /chosen/domU$i  xen,enhanced \"no-xenstore\"" >> $UBOOT_SOURCE
+        fi
+
+        IFS=':';
+        read -a evtchns <<< ${DOMU_EVTCHN[$i]}
+        for evtch_id in ${!evtchns[@]}; do
+            IFS=',';
+            read -a evtch_params <<< ${evtchns[$evtch_id]}
+            evtch_name=evtchn@$evtch_id
+            evtch_port=${evtch_params[0]}
+            evtch_remote_dom=${evtch_params[1]}
+            evtch_remote_dom_chnid=${evtch_params[2]}
+            evtch_phandle=$(( 0x10000000 | $i << 18 |  $evtch_id))
+            evtch_link_phandle=$(( 0x10000000 | $evtch_remote_dom << 18 |  $evtch_remote_dom_chnid))
+            echo "fdt mknod /chosen/domU$i $evtch_name"  >> $UBOOT_SOURCE
+            echo "fdt set /chosen/domU$i/$evtch_name compatible \"xen,evtchn-v1\"" >> $UBOOT_SOURCE
+            echo "fdt set /chosen/domU$i/$evtch_name phandle <$evtch_phandle>" >> $UBOOT_SOURCE
+            echo "fdt set /chosen/domU$i/$evtch_name xen,evtchn <$evtch_port $evtch_link_phandle>" >> $UBOOT_SOURCE
+        done
+
+        IFS=$OLDIFS
+
         i=$(( $i + 1 ))
     done
 }
