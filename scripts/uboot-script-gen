@@ -72,7 +72,7 @@ function device_tree_editing()
     local device_tree_addr=$1
 
     echo "fdt addr $device_tree_addr" >> $UBOOT_SOURCE
-    echo "fdt resize 1024" >> $UBOOT_SOURCE
+    echo "fdt resize 2048" >> $UBOOT_SOURCE
     echo "fdt set /chosen \#address-cells <0x2>" >> $UBOOT_SOURCE
     echo "fdt set /chosen \#size-cells <0x2>" >> $UBOOT_SOURCE
     echo "fdt set /chosen xen,xen-bootargs \"$XEN_CMD\"" >> $UBOOT_SOURCE
